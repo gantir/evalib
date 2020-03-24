@@ -19,3 +19,4 @@ albumentations
 torch
 torchsummary
 torchvision
+tqdm
