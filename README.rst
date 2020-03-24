@@ -12,6 +12,13 @@ Description
 A longer description of your project goes here...
 
 
+Installation
+============
+
+To install this package from github, use the following command:
+pip install git+https://github.com/gantir/evalib.git@develop
+
+
 Note
 ====
 
