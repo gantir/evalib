@@ -1,3 +1,4 @@
+albumentations
 # =============================================================================
 # DEPRECATION WARNING:
 #
@@ -16,7 +17,5 @@
 # scipy==1.0
 #
 torch
-torchvision
 torchsummary
-albumentations
-Sphinx
+torchvision
