@@ -77,7 +77,7 @@ def test(model, test_loader, criterion):
             output = model(data)
 
             # sum up batch loss
-            test_loss += criterion(output, target, reduction="sum").item()
+            test_loss += criterion(output, target).item()
 
             # get the index of the max log-probability
             pred = output.argmax(dim=1, keepdim=True)
