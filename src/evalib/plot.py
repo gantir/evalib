@@ -62,5 +62,23 @@ def imshow_torch(images):
     plt.imshow(np.transpose(np_image, (1, 2, 0)))
 
 
-def plot_images():
-    plt.imshow()
+def plot_images(img_data, classes, img_name):
+    fig = plt.figure(figsize=(10, 10))
+    fig.suptitle("Images")
+
+    num_images = len(img_data)
+    for index in range(1, num_images + 1):
+        #   img = img_data[index-1]["img"] / 2 + 0.5     # unnormalize
+        img = img_data[index - 1]["img"]
+        plt.subplot(5, 5, index)
+        plt.axis("off")
+        plt.imshow(np.transpose(img, (1, 2, 0)))
+        plt.title(
+            "Predicted: %s\nActual: %s"
+            % (
+                classes[img_data[index - 1]["pred"]],
+                classes[img_data[index - 1]["target"]],
+            )
+        )
+
+    plt.tight_layout()
