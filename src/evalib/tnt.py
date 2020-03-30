@@ -54,10 +54,9 @@ def train(model, train_loader, criterion, optimizer, l1_decay=1e-3):
         train_loss = loss.item()
         train_acc = 100.0 * train_correct / len(train_loader.dataset)
 
-        output_message = """Batch {},
-            Training Loss: {:.8f}, Training Accuracy: {:.4f}%""".format(
-            batch_idx, train_loss, train_acc
-        )
+        output_message = "".join(
+            ("Batch {}, Training Loss: {:.8f}, ", "Training Accuracy: {:.4f}%")
+        ).format(batch_idx, train_loss, train_acc)
         pbar.set_description(desc=output_message)
 
     return train_acc, train_loss
@@ -86,10 +85,10 @@ def test(model, test_loader, criterion):
     test_loss /= len(test_loader.dataset)
     test_acc = 100.0 * correct / len(test_loader.dataset)
 
-    output_message = """\nTest Set,
-        Test Loss: {:.8f}, Test Accuracy: {:.4f}%\n""".format(
-        test_loss, test_acc
-    )
+    output_message = "".join(
+        ("\nTest Set, Test Loss: {:.8f}, ", "Test Accuracy: {:.4f}%\n")
+    ).format(test_loss, test_acc)
+
     print(output_message)
 
     return test_acc, test_loss
