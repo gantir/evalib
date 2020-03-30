@@ -103,7 +103,7 @@ class ResNet(nn.Module):
             self.in_planes = planes * block.expansion
         return nn.Sequential(*layers)
 
-    def forwar(self, x):
+    def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
         out = F.dropout(out, p=self.dropout)
 
