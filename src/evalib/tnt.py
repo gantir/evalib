@@ -36,15 +36,13 @@ def train(model, train_loader, criterion, optimizer, l1_decay=1e-3):
 
         # Calculate loss
         loss = criterion(output, target)
+        l1_loss = 0
         if 0 < l1_decay:
-            l1_loss = 0
             for param in model.parameters():
                 l1_loss += torch.norm(param, 1)
 
             l1_loss = l1_decay * l1_loss
-        else:
-            l1 = 0
-        loss += l1
+        loss += l1_loss
 
         pred = output.argmax(dim=1, keepdim=True)
         train_correct += pred.eq(target.view_as(pred)).sum().item()
