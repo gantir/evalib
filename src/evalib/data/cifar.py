@@ -27,13 +27,13 @@ class CIFAR:
         return (0.4914, 0.4822, 0.4465)
 
     def _train_std(self):
-        return (0.2023, 0.1994, 0.2010)
+        return (0.247, 0.243, 0.261)
 
     def _test_mean(self):
         return (0.4914, 0.4822, 0.4465)
 
     def _test_std(self):
-        return (0.2023, 0.1994, 0.2010)
+        return (0.247, 0.243, 0.261)
 
     def _prepare_data(self):
         # Train Phase transformations
