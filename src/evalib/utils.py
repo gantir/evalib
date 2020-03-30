@@ -2,8 +2,13 @@ import torch
 
 
 def get_device():
-    has_cuda = torch.cuda.is_available()
-    device = torch.device("cuda" if has_cuda else "cpu")
-    print('Cuda available?', has_cuda)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("Cuda available?", torch.cuda.is_available())
 
     return device
+
+
+def init_seed(seed):
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
