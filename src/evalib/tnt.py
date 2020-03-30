@@ -14,15 +14,17 @@ def train(model, train_loader, criterion, optimizer, l1_decay=1e-3):
     device = utils.get_device()
     model.train()
 
-    train_loss = 0
-    train_correct = 0
     train_acc = 0
+    train_loss = 0
+
+    correct = 0
+    processed = 0
 
     pbar = tqdm(train_loader)
 
-    for batch_idx, (data, target) in enumerate(pbar):
+    for batch_idx, (inputs, targets) in enumerate(pbar):
 
-        data, target = data.to(device), target.to(device)
+        inputs, targets = inputs.to(device), targets.to(device)
 
         optimizer.zero_grad()
         # In PyTorch, we need to set the gradients to zero before starting to do
@@ -32,30 +34,34 @@ def train(model, train_loader, criterion, optimizer, l1_decay=1e-3):
         # Because of this, when you start your training loop, ideally you should
         # zero out the gradients so that you do the parameter update correctly.
 
-        output = model(data)
+        outputs = model(inputs)
 
         # Calculate loss
-        loss = criterion(output, target)
-        l1_loss = 0
-        if 0 < l1_decay:
-            for param in model.parameters():
-                l1_loss += torch.norm(param, 1)
+        loss = criterion(outputs, targets)
 
-            l1_loss = l1_decay * l1_loss
-        loss += l1_loss
+        # @todo: fix how l1 loss works
+        # l1_loss = 0
+        # if 0 < l1_decay:
+        #     for param in model.parameters():
+        #         l1_loss += torch.norm(param, 1)
 
-        pred = output.argmax(dim=1, keepdim=True)
-        train_correct += pred.eq(target.view_as(pred)).sum().item()
+        #     l1_loss = l1_decay * l1_loss
+        # loss += l1_loss
 
         # Backpropagation
         loss.backward()
         optimizer.step()
 
         train_loss = loss.item()
-        train_acc = 100.0 * train_correct / len(train_loader.dataset)
+        processed += targets.size(0)
+
+        pred = outputs.argmax(dim=1, keepdim=True)
+        correct += pred.eq(targets).sum().item()
+
+        train_acc = 100.0 * correct / processed
 
         output_message = "".join(
-            ("Batch {}, Training Loss: {:.8f}, ", "Training Accuracy: {:.4f}%")
+            ("Batch Id: {}, Training Loss: {:.8f}, ", "Training Accuracy: {:.4f}%")
         ).format(batch_idx, train_loss, train_acc)
         pbar.set_description(desc=output_message)
 
@@ -65,25 +71,29 @@ def train(model, train_loader, criterion, optimizer, l1_decay=1e-3):
 def test(model, test_loader, criterion):
     device = utils.get_device()
     model.eval()
-    test_loss = 0
-    correct = 0
 
     test_acc = 0
+    test_loss = 0
+
+    correct = 0
+    processed = 0
 
     with torch.no_grad():
-        for data, target in test_loader:
-            data, target = data.to(device), target.to(device)
-            output = model(data)
+        pbar = tqdm(test_loader)
 
-            # sum up batch loss
-            test_loss += criterion(output, target).item()
+        for batch_idx, (inputs, targets) in enumerate(pbar):
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = model(inputs)
 
-            # get the index of the max log-probability
-            pred = output.argmax(dim=1, keepdim=True)
-            correct += pred.eq(target.view_as(pred)).sum().item()
+            loss = criterion(outputs, targets)
+            test_loss += loss.item()
+            processed += targets.size(0)
 
-    test_loss /= len(test_loader.dataset)
-    test_acc = 100.0 * correct / len(test_loader.dataset)
+            _, pred = outputs.max(1)
+            correct += pred.eq(targets).sum().item()
+
+    test_loss /= processed
+    test_acc = 100.0 * correct / processed
 
     output_message = "".join(
         ("\nTest Set, Test Loss: {:.8f}, ", "Test Accuracy: {:.4f}%\n")
