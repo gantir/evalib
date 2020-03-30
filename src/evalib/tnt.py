@@ -10,7 +10,7 @@ def l1_penalty(x):
     return torch.abs(x).sum()
 
 
-def train(model, train_loader, criterion, optimizer, l1_decay=1e-3):
+def train(model, data_loader, criterion, optimizer, l1_decay=1e-3):
     device = utils.get_device()
     model.train()
 
@@ -18,9 +18,8 @@ def train(model, train_loader, criterion, optimizer, l1_decay=1e-3):
     train_loss = 0
 
     correct = 0
-    processed = 0
 
-    pbar = tqdm(train_loader)
+    pbar = tqdm(data_loader)
 
     for batch_idx, (inputs, targets) in enumerate(pbar):
 
@@ -35,8 +34,6 @@ def train(model, train_loader, criterion, optimizer, l1_decay=1e-3):
         # zero out the gradients so that you do the parameter update correctly.
 
         outputs = model(inputs)
-
-        # Calculate loss
         loss = criterion(outputs, targets)
 
         # @todo: fix how l1 loss works
@@ -53,22 +50,24 @@ def train(model, train_loader, criterion, optimizer, l1_decay=1e-3):
         optimizer.step()
 
         train_loss = loss.item()
-        processed += targets.size(0)
 
-        pred = outputs.argmax(dim=1, keepdim=True)
-        correct += pred.eq(targets).sum().item()
+        _, pred = torch.max(outputs.data, 1)
+        correct += (pred == targets).sum().item()
 
-        train_acc = 100.0 * correct / processed
+        train_acc = 100.0 * correct / len(data_loader.dataset)
 
         output_message = "".join(
-            ("Batch Id: {}, Training Loss: {:.8f}, ", "Training Accuracy: {:.4f}%")
-        ).format(batch_idx, train_loss, train_acc)
+            (
+                "Batch Id/Size: {}/{}, Training Loss: {:.8f}, ",
+                "Training Accuracy: {:.4f}%",
+            )
+        ).format(batch_idx + 1, len(data_loader.dataset), train_loss, train_acc)
         pbar.set_description(desc=output_message)
 
     return train_acc, train_loss
 
 
-def test(model, test_loader, criterion):
+def test(model, data_loader, criterion):
     device = utils.get_device()
     model.eval()
 
@@ -76,10 +75,9 @@ def test(model, test_loader, criterion):
     test_loss = 0
 
     correct = 0
-    processed = 0
 
     with torch.no_grad():
-        pbar = tqdm(test_loader)
+        pbar = tqdm(data_loader)
 
         for batch_idx, (inputs, targets) in enumerate(pbar):
             inputs, targets = inputs.to(device), targets.to(device)
@@ -87,19 +85,18 @@ def test(model, test_loader, criterion):
 
             loss = criterion(outputs, targets)
             test_loss += loss.item()
-            processed += targets.size(0)
 
             _, pred = outputs.max(1)
-            correct += pred.eq(targets).sum().item()
+            correct += (pred == targets).sum().item()
 
-    test_loss /= processed
-    test_acc = 100.0 * correct / processed
+        test_loss /= len(data_loader.dataset)
+        test_acc = 100.0 * correct / len(data_loader.dataset)
 
-    output_message = "".join(
-        ("\nTest Set, Test Loss: {:.8f}, ", "Test Accuracy: {:.4f}%\n")
-    ).format(test_loss, test_acc)
+        output_message = "".join(
+            ("\nBatch Id/Size: {}/{}, Test Loss: {:.8f}, ", "Test Accuracy: {:.4f}%\n")
+        ).format(batch_idx + 1, len(data_loader.dataset), test_loss, test_acc)
 
-    print(output_message)
+        print(output_message)
 
     return test_acc, test_loss
 
@@ -120,6 +117,7 @@ def train_n_test(
     val_loss_history = []
 
     for epoch in range(1, num_epochs + 1):
+        print("Epoch: {}".format(epoch))
         train_acc, train_loss = train(
             model, train_data_loader, criterion, optimizer, l1_decay
         )
