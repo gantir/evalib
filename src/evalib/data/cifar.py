@@ -1,7 +1,7 @@
 import torch
 from torch import cuda
+from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from troch.utils.data import DataLoader
 
 
 class CIFAR:
