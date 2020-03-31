@@ -10,8 +10,10 @@ try:
     from . import plot
     from . import data
     from . import models
+    from . import gradcam
     from . import tnt
 
+    __all__ = ["utils", "plot", "data", "models", "gradcam", "tnt"]
 except DistributionNotFound:
     __version__ = "unknown"
 finally:
