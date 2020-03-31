@@ -136,3 +136,45 @@ def train_n_test(
         (train_acc_history, train_loss_history),
         (val_acc_history, val_loss_history),
     ]
+
+
+def get_wrong_correct_predictions(model, data_loader, count=10):
+    device = utils.get_device()
+    wrong_classification = []
+    correct_classification = []
+
+    for images, labels in iter(data_loader):
+        images, labels = images.to(device), labels.to(device)
+
+        output = model(images)
+        _, pred = output.max(1)
+        is_correct = pred == labels
+
+        wrong_classification_index = (is_correct == 0).nonzero().cpu().numpy()[:, 0]
+        for idx in wrong_classification_index:
+            if count <= len(wrong_classification):
+                break
+            wrong_classification.append(
+                {
+                    "target": labels[idx].cpu().numpy(),
+                    "pred": pred[idx].cpu().numpy(),
+                    "img": images[idx].cpu(),
+                }
+            )
+
+        correct_classification_index = (is_correct == 1).nonzero().cpu().numpy()[:, 0]
+        for idx in correct_classification_index:
+            if count <= len(correct_classification):
+                break
+            correct_classification.append(
+                {
+                    "target": labels[idx].cpu().numpy(),
+                    "pred": pred[idx].cpu().numpy(),
+                    "img": images[idx].cpu(),
+                }
+            )
+
+        if count <= len(correct_classification) and count <= len(wrong_classification):
+            break
+
+    return correct_classification, wrong_classification
