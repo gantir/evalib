@@ -47,7 +47,7 @@ class CIFAR:
 
     def _prepare_data(self):
         # Augumentation used only while training
-        train_transforms = Compose(
+        train_transforms_album = Compose(
             [
                 HueSaturationValue(p=0.25),
                 HorizontalFlip(p=0.5),
@@ -65,6 +65,9 @@ class CIFAR:
                 ToTensor(),
             ]
         )
+        train_transforms = lambda img: train_transforms_album(image=np.array(img))[
+            "image"
+        ]
         # train_transforms = transforms.Compose(
         #     [
         #         transforms.RandomCrop(32, padding=4),
@@ -78,7 +81,7 @@ class CIFAR:
         )
 
         # No Augumentation while testing
-        test_transforms = Compose(
+        test_transforms_album = Compose(
             [
                 Normalize(mean=self._test_mean(), std=self._test_std()),
                 ToTensor()
@@ -86,6 +89,9 @@ class CIFAR:
                 # transforms.Normalize(self._test_mean(), self._test_std()),
             ]
         )
+        test_transforms = lambda img: test_transforms_album(image=np.array(img))[
+            "image"
+        ]
         # Pytorch default approach
         # test_transforms = transforms.Compose(
         #     [
