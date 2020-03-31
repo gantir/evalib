@@ -1,3 +1,3 @@
-from . import gradcam
+from . import gradcam, utils
 
-__all__ = ["gradcam"]
+__all__ = ["gradcam", "utils"]
