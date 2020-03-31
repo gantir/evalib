@@ -1,7 +1,17 @@
+import numpy as np
 import torch
+from albumentations import (
+    CoarseDropout,
+    Compose,
+    HorizontalFlip,
+    HueSaturationValue,
+    Normalize,
+    Rotate,
+)
+from albumentations.pytorch import ToTensor
 from torch import cuda
 from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+from torchvision import datasets
 
 
 class CIFAR:
@@ -36,26 +46,53 @@ class CIFAR:
         return (0.247, 0.243, 0.261)
 
     def _prepare_data(self):
-        # Train Phase transformations
-        train_transforms = transforms.Compose(
+        # Augumentation used only while training
+        train_transforms = Compose(
             [
-                transforms.RandomCrop(32, padding=4),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(self._train_mean(), self._train_std()),
+                HueSaturationValue(p=0.25),
+                HorizontalFlip(p=0.5),
+                Rotate(limit=15),
+                CoarseDropout(
+                    max_holes=1,
+                    max_height=16,
+                    max_width=16,
+                    min_height=4,
+                    min_width=4,
+                    fill_value=np.array(self._train_mean()) * 255.0,
+                    p=0.75,
+                ),
+                Normalize(mean=self._train_mean(), std=self._train_std()),
+                ToTensor(),
             ]
         )
+        # train_transforms = transforms.Compose(
+        #     [
+        #         transforms.RandomCrop(32, padding=4),
+        #         transforms.RandomHorizontalFlip(),
+        #         transforms.ToTensor(),
+        #         transforms.Normalize(self._train_mean(), self._train_std()),
+        #     ]
+        # )
         train_dataset = datasets.CIFAR10(
             root="./data", train=True, download=True, transform=train_transforms
         )
 
-        # Test Phase transformations
-        test_transforms = transforms.Compose(
+        # No Augumentation while testing
+        test_transforms = Compose(
             [
-                transforms.ToTensor(),
-                transforms.Normalize(self._test_mean(), self._test_std()),
+                Normalize(mean=self._test_mean(), std=self._test_std()),
+                ToTensor()
+                # transforms.ToTensor(),
+                # transforms.Normalize(self._test_mean(), self._test_std()),
             ]
         )
+        # Pytorch default approach
+        # test_transforms = transforms.Compose(
+        #     [
+        #         transforms.ToTensor(),
+        #         transforms.Normalize(self._test_mean(), self._test_std()),
+        #     ]
+        # )
         test_dataset = datasets.CIFAR10(
             root="./data", train=False, transform=test_transforms
         )
