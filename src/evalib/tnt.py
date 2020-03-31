@@ -124,16 +124,16 @@ def train_n_test(
         train_acc_history.append(train_acc)
         train_loss_history.append(train_loss)
 
+        val_acc, val_loss = test(model, test_data_loader, criterion)
+        val_acc_history.append(val_acc)
+        val_loss_history.append(val_loss)
+
         if scheduler is not None:
             try:
                 print("LR:", scheduler.get_lr())
             except Exception:
                 pass
-            scheduler.step()
-
-        val_acc, val_loss = test(model, test_data_loader, criterion)
-        val_acc_history.append(val_acc)
-        val_loss_history.append(val_loss)
+            scheduler.step(val_loss)
 
     return [
         (train_acc_history, train_loss_history),
