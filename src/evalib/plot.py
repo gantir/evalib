@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from matplotlib import pyplot as plt
 
 
@@ -57,8 +58,24 @@ def plot_loss(train_history, val_history):
     _ = plt.show()
 
 
-def imshow_torch(images):
-    np_image = images.numpy()
+def denormalize(tensor, mean=[0.4914, 0.4822, 0.4465], std=[0.247, 0.243, 0.261]):
+    single_img = False
+    if tensor.ndimension() == 3:
+        single_img = True
+        tensor = tensor[None, :, :, :]
+
+    if not tensor.ndimension() == 4:
+        raise TypeError("tensor should be 4D")
+
+    mean = torch.FloatTensor(mean).view(1, 3, 1, 1).expand_as(tensor).to(tensor.device)
+    std = torch.FloatTensor(std).view(1, 3, 1, 1).expand_as(tensor).to(tensor.device)
+    ret = tensor.mul(std).add(mean)
+    return ret[0] if single_img else ret
+
+
+def imshow_torch(image):
+    di = denormalize(image)
+    np_image = di.numpy()
     plt.imshow(np.transpose(np_image, (1, 2, 0)))
 
 
@@ -68,8 +85,8 @@ def plot_images(img_data, classes, img_name):
 
     num_images = len(img_data)
     for index in range(1, num_images + 1):
-        #   img = img_data[index-1]["img"] / 2 + 0.5     # unnormalize
-        img = img_data[index - 1]["img"]
+        img = denormalize(img_data[index - 1]["img"])
+        # img = img_data[index - 1]["img"]
         plt.subplot(5, 5, index)
         plt.axis("off")
         plt.imshow(np.transpose(img, (1, 2, 0)))

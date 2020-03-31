@@ -138,7 +138,7 @@ def train_n_test(
     ]
 
 
-def get_wrong_correct_predictions(model, data_loader, count=10):
+def get_correct_wrong_predictions(model, data_loader, count=10):
     device = utils.get_device()
     wrong_classification = []
     correct_classification = []
