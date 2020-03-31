@@ -12,6 +12,7 @@ try:
     from . import models
     from . import gradcam
     from . import tnt
+    from . import lr
 
     __all__ = ["utils", "plot", "data", "models", "gradcam", "tnt"]
 except DistributionNotFound:
