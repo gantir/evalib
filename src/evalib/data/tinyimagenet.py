@@ -66,7 +66,7 @@ class TinyImageNet:
         #     ]
         # )
         train_dataset = datasets.TinyImageNetData(
-            root="./data/tinyimagenet/tiny-imagenet-200", split="train", transform=train_transforms
+            root= self._args.data_path, split="train", transform=train_transforms
         )
 
         # No Augumentation while testing
@@ -89,7 +89,7 @@ class TinyImageNet:
         #     ]
         # )
         test_dataset = datasets.TinyImageNetData(
-            root="./data/tinyimagenet/tiny-imagenet-200", split="test", transform=test_transforms
+            root=self._args.data_path, split="test", transform=test_transforms
         )
 
         return train_dataset, test_dataset
