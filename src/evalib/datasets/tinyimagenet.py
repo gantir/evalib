@@ -1,5 +1,8 @@
 """
-Author: Meng Lee, mnicnc404
+Author: Ramjee Ganti
+Date: 2020-Apr-19
+----
+Original Author: Meng Lee, mnicnc404
 Date: 2018/06/04
 References:
     - https://stanford.edu/~shervine/blog/pytorch-how-to-generate-data-parallel.html
@@ -9,7 +12,8 @@ import glob
 import os
 
 from PIL import Image
-from torch.utils.data import Dataset
+from torch.utils import check_integrity, download_and_extract_archive
+from torchvision.datasets.vision import VisionDataset
 
 EXTENSION = "JPEG"
 NUM_IMAGES_PER_CLASS = 500
@@ -17,22 +21,35 @@ CLASS_LIST_FILE = "wnids.txt"
 VAL_ANNOTATION_FILE = "val_annotations.txt"
 
 
-class TinyImageNetData(Dataset):
-    """Tiny ImageNet data set available from
+class TinyImageNet(VisionDataset):
+
+    """ TinyImageNet data set available from
     `http://cs231n.stanford.edu/tiny-imagenet-200.zip`.
 
-    Parameters
-    ----------
-    root: string
-        Root directory including `train`, `test` and `val` subdirectories.
-    split: string
-        Indicating which split to return as a data set.
-        Valid option: [`train`, `test`, `val`]
-    transform: torchvision.transforms
-        A (series) of valid transformation(s).
-    in_memory: bool
-        Set to True if there is enough memory (about 5G)
-        and want to minimize disk IO overhead.
+    Args:
+        root (string): Root directory including `train`, `test` and `val`
+            subdirectories.
+        split (string, optional): Indicating which split to return as a data set.
+            Valid option: [`train`, `test`, `val`]
+        transform (callable, optional): torchvision.transforms A (series) of valid
+            transformation(s).
+        target_transform (callable, optional): A function/transform that takes in the
+            target and transforms it.
+        download (bool, optional): If true, downloads the dataset from the internet and
+            puts it in root directory. If dataset is already downloaded, it is not
+            downloaded again.
+        loader (callable, optional): A function to load an image given its path.
+        in_memory: bool
+            Set to True if there is enough memory (about 5G)
+            and want to minimize disk IO overhead.
+
+    Attributes:
+        classes (list): List of the class name tuples.
+        class_to_idx (dict): Dict with items (class_name, class_index).
+        wnids (list): List of the WordNet IDs.
+        wnid_to_idx (dict): Dict with items (wordnet_id, class_index).
+        imgs (list): List of (image path, class_index) tuples
+        targets (list): The class_index value for each image in the dataset
     """
 
     def __init__(
@@ -41,11 +58,22 @@ class TinyImageNetData(Dataset):
         split="train",
         transform=None,
         target_transform=None,
+        download=False,
+        loader=None,
         in_memory=False,
+        **kwargs
     ):
-        super(TinyImageNetData, self).__init__()
+
+        super(VisionDataset, self).__init__(
+            root, transform=transform, target_transform=target_transform
+        )
+
+        self.split = split  # training set or validation set or test set
+
+        if download:
+            self.download()
+
         self.root = os.path.expanduser(root)
-        self.split = split
         self.transform = transform
         self.target_transform = target_transform
         self.in_memory = in_memory
