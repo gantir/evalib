@@ -65,7 +65,7 @@ class TinyImageNet:
         #         transforms.Normalize(self._train_mean(), self._train_std()),
         #     ]
         # )
-        train_dataset = datasets.TinyImageNetData(
+        train_dataset = datasets.TinyImageNet(
             root= self._args.data_path, split="train", transform=train_transforms
         )
 
@@ -88,7 +88,7 @@ class TinyImageNet:
         #         transforms.Normalize(self._test_mean(), self._test_std()),
         #     ]
         # )
-        test_dataset = datasets.TinyImageNetData(
+        test_dataset = datasets.TinyImageNet(
             root=self._args.data_path, split="val", transform=test_transforms
         )
 
