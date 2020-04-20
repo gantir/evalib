@@ -1,1 +1,1 @@
-from .tinyimagenet_data import TinyImageNetData
+from .tinyimagenet import TinyImageNet

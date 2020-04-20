@@ -89,7 +89,7 @@ class TinyImageNet:
         #     ]
         # )
         test_dataset = datasets.TinyImageNetData(
-            root=self._args.data_path, split="test", transform=test_transforms
+            root=self._args.data_path, split="val", transform=test_transforms
         )
 
         return train_dataset, test_dataset
