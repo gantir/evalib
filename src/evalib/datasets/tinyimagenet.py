@@ -12,7 +12,11 @@ import glob
 import os
 
 from PIL import Image
-from torch.utils import check_integrity, download_and_extract_archive, verify_str_arg
+from torchvision.datasets.utils import (
+    check_integrity,
+    download_and_extract_archive,
+    verify_str_arg
+)
 from torchvision.datasets.vision import VisionDataset
 
 EXTENSION = "JPEG"
@@ -69,16 +73,19 @@ class TinyImageNet(VisionDataset):
         **kwargs
     ):
 
-        super(VisionDataset, self).__init__(
+        super(TinyImageNet, self).__init__(
             root, transform=transform, target_transform=target_transform
         )
+        self.root = os.path.expanduser(root)
+        self.root_final = os.path.join(self.root, self.base_folder, "tiny-imagenet-200")
 
         self.split = verify_str_arg(
             split, "split", ("train", "val", "test")
         )  # training set , validation set or test set
+        self.split_dir = os.path.join(self.root_final, self.split)
 
         if download:
-            self.download()
+            self._download()
 
         if not self._check_integrity():
             raise RuntimeError(
@@ -86,24 +93,23 @@ class TinyImageNet(VisionDataset):
                 + " You can use download=True to download it"
             )
 
-        self.root = os.path.expanduser(root)
-        self.root_final = os.path.join(self.root, self.base_folder, "tiny-imagenet-200")
-        self.transform = transform
-        self.target_transform = target_transform
-        self.in_memory = in_memory
-        self.split_dir = os.path.join(self.root_final, self.split)
         self.image_paths = sorted(
             glob.iglob(
                 os.path.join(self.split_dir, "**", "*.%s" % EXTENSION), recursive=True
             )
         )
-        self.labels = {}  # fname - label number mapping
+
+        self.transform = transform
+        self.target_transform = target_transform
+        self.in_memory = in_memory
+
+        self.classes = {}  # fname - label number mapping
         self.images = []  # used for in-memory processing
 
         # build class label - number mapping
         with open(os.path.join(self.root_final, CLASS_LIST_FILE), "r") as fp:
-            self.classes = sorted([text.strip() for text in fp.readlines()])
-        self.class_to_idx = {text: i for i, text in enumerate(self.classes)}
+            self.classes_names = sorted([text.strip() for text in fp.readlines()])
+        self.class_to_idx = {text: i for i, text in enumerate(self.classes_names)}
 
         if self.split == "train":
             for class_text, i in self.class_to_idx.items():
@@ -124,18 +130,21 @@ class TinyImageNet(VisionDataset):
         return len(self.image_paths)
 
     def _check_integrity(self):
-        for (filename, md5, url) in self.file_list:
-            fpath = os.path.join(self.root, self.base_folder, filename)
-            _, ext = os.path.splitext(filename)
-            # Allow original archive to be deleted (zip and 7z)
-            # Only need the extracted images
-            if ext not in [".zip", ".7z"] and not check_integrity(fpath, md5):
-                return False
+        dir_exists = os.path.isdir(self.root_final)
+
+        if not dir_exists:
+            for (filename, md5, url) in self.file_list:
+                fpath = os.path.join(self.root, self.base_folder, filename)
+                _, ext = os.path.splitext(filename)
+                # Allow original archive to be deleted (zip and 7z)
+                # Only need the extracted images
+                if ext not in [".zip", ".7z"] and not check_integrity(fpath, md5):
+                    return False
 
         # Should check a hash of the images
-        return os.path.isdir(self.root_final)
+        return dir_exists
 
-    def download(self):
+    def _download(self):
 
         if self._check_integrity():
             print("Files already downloaded and verified")
@@ -144,7 +153,7 @@ class TinyImageNet(VisionDataset):
         for (filename, md5, url) in self.file_list:
             download_and_extract_archive(
                 url,
-                os.pardir.join(self.root, self.base_folder),
+                os.path.join(self.root, self.base_folder),
                 filename=filename,
                 md5=md5,
                 remove_finished=True,
@@ -162,7 +171,7 @@ class TinyImageNet(VisionDataset):
             return img
         else:
             # file_name = file_path.split('/')[-1]
-            return img, self.labels[os.path.basename(file_path)]
+            return img, self.classes[os.path.basename(file_path)]
 
     def read_image(self, path):
         img = Image.open(path)
@@ -170,15 +179,16 @@ class TinyImageNet(VisionDataset):
 
 
 if __name__ == "__main__":
-    tiny_train = TinyImageNet("~/Downloads", split="train")
+
+    tiny_train = TinyImageNet("~/Downloads", split="train", download=True)
     print(len(tiny_train))
-    print(tiny_train.__getitem__(99999))
+    print(tiny_train.__getitem__(99))
     for fname, number in tiny_train.classes.items():
-        if number == 192:
+        if number == 19:
             print(fname, number)
 
-    tiny_train = TinyImageNet("./Downloads", split="val")
+    tiny_train = TinyImageNet("~/Downloads", split="val")
     print(tiny_train.__getitem__(99))
 
-    # in-memory test
-    # tiny_val = TinyImageNetData("dataset", split="val", in_memory=True)
+    # # in-memory test
+    # tiny_val = TinyImageNet("~/Downloads", split="test", in_memory=True)
