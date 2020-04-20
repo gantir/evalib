@@ -28,10 +28,10 @@ class TinyImageNet:
     def _train_std(self):
         return (0.247, 0.243, 0.261)
 
-    def _test_mean(self):
+    def _val_mean(self):
         return (0.4914, 0.4822, 0.4465)
 
-    def _test_std(self):
+    def _val_std(self):
         return (0.247, 0.243, 0.261)
 
     def _prepare_data(self):
@@ -72,36 +72,34 @@ class TinyImageNet:
             download=True,
         )
 
-        # No Augumentation while testing
-        test_transforms_album = Compose(
+        # No Augumentation while Validation
+        val_transforms_album = Compose(
             [
-                Normalize(mean=self._test_mean(), std=self._test_std()),
+                Normalize(mean=self._val_mean(), std=self._val_std()),
                 ToTensor()
                 # transforms.ToTensor(),
-                # transforms.Normalize(self._test_mean(), self._test_std()),
+                # transforms.Normalize(self._val_mean(), self._val_std()),
             ]
         )
-        test_transforms = lambda img: test_transforms_album(image=np.array(img))[
-            "image"
-        ]
+        val_transforms = lambda img: val_transforms_album(image=np.array(img))["image"]
         # Pytorch default approach
-        # test_transforms = transforms.Compose(
+        # val_transforms = transforms.Compose(
         #     [
         #         transforms.ToTensor(),
-        #         transforms.Normalize(self._test_mean(), self._test_std()),
+        #         transforms.Normalize(self._val_mean(), self._val_std()),
         #     ]
         # )
-        test_dataset = datasets.TinyImageNet(
+        val_dataset = datasets.TinyImageNet(
             root=self._args.data_path,
             split="val",
-            transform=test_transforms,
+            transform=val_transforms,
             download=True,
         )
 
-        return train_dataset, test_dataset
+        return train_dataset, val_dataset
 
     def _prepare_dataloader(self):
-        train_dataset, test_dataset = self._prepare_data()
+        train_dataset, val_dataset = self._prepare_data()
 
         torch.manual_seed(self._args.SEED)
         dlargs = {"batch_size": self._args.batch_size}
@@ -114,4 +112,4 @@ class TinyImageNet:
             }
 
         self.train_loader = DataLoader(train_dataset, **dlargs)
-        self.test_loader = DataLoader(test_dataset, **dlargs)
+        self.val_loader = DataLoader(val_dataset, **dlargs)
