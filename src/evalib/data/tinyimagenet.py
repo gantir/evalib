@@ -6,7 +6,7 @@ from albumentations import (
     HorizontalFlip,
     HueSaturationValue,
     Normalize,
-    Rotate,
+    Rotate
 )
 from albumentations.pytorch import ToTensor
 from torch import cuda
@@ -66,7 +66,10 @@ class TinyImageNet:
         #     ]
         # )
         train_dataset = datasets.TinyImageNet(
-            root= self._args.data_path, split="train", transform=train_transforms
+            root=self._args.data_path,
+            split="train",
+            transform=train_transforms,
+            download=True,
         )
 
         # No Augumentation while testing
@@ -89,7 +92,10 @@ class TinyImageNet:
         #     ]
         # )
         test_dataset = datasets.TinyImageNet(
-            root=self._args.data_path, split="val", transform=test_transforms
+            root=self._args.data_path,
+            split="val",
+            transform=test_transforms,
+            download=True,
         )
 
         return train_dataset, test_dataset
